@@ -87,7 +87,8 @@ run.bat
 👉 **完整规格、参数表、上机前校验流程与 GRBL 设置建议见 [docs/MACHINE.md](docs/MACHINE.md)**。
 硬件构成、CAD 模型与**来源/许可/元数据提示**见 [docs/HARDWARE.md](docs/HARDWARE.md)。
 （控制系统为商业成品 **CMS3**;发送 G-code 使用第三方软件 **GRBL-Plotter**;冲头压纸弹簧由
-[MakerWorld 参数化弹簧生成器](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547)生成。）
+[MakerWorld 参数化弹簧生成器](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547)生成并**仅个人打印自用** ——
+该模型受其 Standard Digital File License 限制,**其数字文件不随本仓库分发**。）
 
 ---
 
