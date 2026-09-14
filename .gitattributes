@@ -1,0 +1,29 @@
+# 行尾与文本处理规范(避免 Windows/macOS 提交造成整文件差异)
+* text=auto eol=lf
+
+# Windows 批处理必须保留 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制文件:不做文本转换、不显示 diff
+*.prt   binary
+*.step  binary
+*.stp   binary
+*.3mf   binary
+*.stl   binary
+*.png   binary
+*.jpg   binary
+*.mp3   binary
+*.wav   binary
+*.whl   binary
+*.tar   binary
+*.pb    binary
+*.onnx  binary
+*.data-00000-of-00001 binary
+
+# 让 GitHub 语言统计更准确: 文档与前端
+*.md   text
+*.py   text
+*.js   text
+*.css  text
+*.html text

@@ -75,6 +75,24 @@ onnxruntime(MIT)、setuptools(<81, MIT)。完整与最新版本见 [`requirement
 
 ---
 
+## 5. 硬件设计资料与外部工具来源
+
+> 详细说明与元数据清理建议见 [docs/HARDWARE.md](docs/HARDWARE.md)。
+
+| 来源 | 用途 | 说明 / 许可提示 |
+|---|---|---|
+| **[MakerWorld「压缩弹簧生成器(参数化)」](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547)** | 生成"冲头压纸弹簧"3D 模型 | MakerWorld 模型常为 CC BY-NC-SA / 仅个人使用;**若含 NC 条款则与本项目 GPL-3.0(允许商用)存在分发冲突** → 仓库内仅保留"由该工具生成"的文字说明 |
+| **嘉立创 jlcfa.com 标准件库** | 轴承/步进电机/同步带轮/紧固件等标准件 3D 模型(`HardWare_Model/标准模型/`) | 厂商选型参考资料,版权归原厂商;仅用于装配设计参考 |
+| **"小政哥的店铺" CMS3 控制系统** | 运动控制板(商业成品) | **商业产品**:仓库只声明型号与来源,**不分发**其固件/说明书/安装包 |
+| **GRBL-Plotter**(作者 svenhb) | 把本机生成的 G-code 发送给控制板(第三方开源软件) | 独立分发,**本项目不收录其代码**;许可与用法以其官方仓库/发布页为准 |
+| 本项目作者的 CAD 设计(`HardWare_Model/*.prt`、`打印.3mf`) | 机械结构(冲头、滑块、挡板、送带机构等) | 随本仓库以 GPL-3.0 提供(见 §1) |
+
+> ⚠️ 硬件模型文件内嵌创建者/路径等元数据(`.prt` 里可见 `C:\Users\ADMINI...`),
+> 且嘉立创导出日志含第三方作者名与本机路径 —— 后者已在 `.gitignore` 中排除。
+> 详见 [docs/HARDWARE.md §4](docs/HARDWARE.md)。
+
+---
+
 ## 6. 引用与致谢
 
 - 30 音纸带音表来源:[搜狐 DIY 教程](https://m.sohu.com/a/242873889_100214167/)、

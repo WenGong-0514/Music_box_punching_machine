@@ -85,6 +85,9 @@ run.bat
 - 结束不回 Y0,而是继续前进 50mm 便于剪带。
 
 👉 **完整规格、参数表、上机前校验流程与 GRBL 设置建议见 [docs/MACHINE.md](docs/MACHINE.md)**。
+硬件构成、CAD 模型与**来源/许可/元数据提示**见 [docs/HARDWARE.md](docs/HARDWARE.md)。
+（控制系统为商业成品 **CMS3**;发送 G-code 使用第三方软件 **GRBL-Plotter**;冲头压纸弹簧由
+[MakerWorld 参数化弹簧生成器](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547)生成。）
 
 ---
 
@@ -133,6 +136,7 @@ docs/            开发者文档与参考(MACHINE / DEVELOPMENT / ENGINES / HIST
 |---|---|
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | **开发者主文档**:架构、模块职责、数据结构、API 清单、扩展指南、技术债、路线图 |
 | [docs/MACHINE.md](docs/MACHINE.md) | 打孔机坐标与 G-code 规格、参数表、上机校验、GRBL 配置、耗时模型 |
+| [docs/HARDWARE.md](docs/HARDWARE.md) | 硬件构成、CAD 模型清单、外部来源(CMS3 / GRBL-Plotter / MakerWorld / 嘉立创)与元数据清理建议 |
 | [docs/ENGINES.md](docs/ENGINES.md) | 引擎选型与调优实测(Basic Pitch / Omnizart / ByteDance / DSP、Demucs 源分离、移调实验) |
 | [docs/HISTORY.md](docs/HISTORY.md) | 多机环境适配与变更记录(历史) |
 | [deploy_server/SERVICE-INSTALL.md](deploy_server/SERVICE-INSTALL.md) | 用 Docker 把 Omnizart 装成可按 IP:port 调用的引擎服务 |

@@ -19,6 +19,9 @@ venv/
 *.log
 _*.tmp
 
+# 嘉立创等 CAE 导出日志: 含导出方作者名与本地路径(隐私), 且无设计价值
+HardWare_Model/**/*.log
+
 # ---- 运行时数据(体积大; 含用户音频与会话缓存)----
 data/sessions/
 data/project.json
