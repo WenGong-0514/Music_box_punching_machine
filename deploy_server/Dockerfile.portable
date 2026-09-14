@@ -1,0 +1,32 @@
+# Omnizart 可移植 CPU 镜像: 含 model + python + tensorflow + fastapi; 直接跑 HTTP 引擎服务.
+# 构建: docker build -f deploy_server/Dockerfile.portable -t omnizart:server .
+# 运行(起 HTTP, 供 GUI/别机按 IP:port 调用):
+#   docker run -d -p 8766:8766 --name omnizart-http omnizart:server
+# CLI 转录(一次性):  docker run --rm -v <wavDir>:/data omnizart:server \
+#       python /srv/omnizart_transcribe.py /data/曲.wav --out /data/events.json
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
+
+# 用国内镜像能避免 pythonhosted 大轮子超时(换网络就删此行)
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+
+COPY third_party/omnizart /srv/omnizart
+COPY deploy_server/omnizart_transcribe.py /srv/omnizart_transcribe.py
+COPY deploy_server/omni_http.py /srv/omni_http.py
+
+# 固定版本组合(CPU, 服务器已验证)
+RUN python -m pip install --no-cache-dir \
+        'numpy==1.26.4' 'scipy==1.13.1' 'numba==0.59.1' 'llvmlite==0.42.0' \
+        'librosa==0.10.2' 'soundfile==0.12.1' 'h5py' 'pyyaml' 'pretty-midi' 'mido' \
+        'six' 'jsonschema' 'pillow' \
+    && python -m pip install --no-cache-dir \
+        'tensorflow-cpu==2.16.2' 'tf-keras==2.16.0' \
+    && python -m pip install --no-cache-dir 'fastapi' 'uvicorn' 'python-multipart'
+
+ENV PYTHONPATH=/srv \
+    TF_CPP_MIN_LOG_LEVEL=3 \
+    OMNI_PKG_PARENT=/srv
+
+EXPOSE 8766
+ENTRYPOINT ["python", "/srv/omni_http.py", "--port", "8766"]

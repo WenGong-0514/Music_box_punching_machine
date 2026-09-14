@@ -1,0 +1,53 @@
+# =====================================================================
+# MusicBox Tape Studio — .gitignore
+# 目标: 仓库只保留源码/配置/小体积参考数据; 大文件、运行时数据、
+#       商业录音与第三方版权内容、私人工具一律不入库。
+# =====================================================================
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# ---- 虚拟环境(各机器自行 `python -m venv .venv` 重建)----
+.venv/
+venv/
+
+# ---- 本地临时 / 日志 ----
+.tmp/
+*.log
+_*.tmp
+
+# ---- 运行时数据(体积大; 含用户音频与会话缓存)----
+data/sessions/
+data/project.json
+
+# ---- 输出目录(生成的 G-code/MIDI/图纸与源音频)----
+out/
+
+# ---- 大体积分发产物(1GB 级镜像 tar 等; 用 deploy_server/Dockerfile.portable 自行构建)----
+*.tar
+*.tar.gz
+*.tgz
+omnizart-server-*.tar
+
+# ---- 大体积音频素材(Demucs 分轨等; 可由 tools/source_separate.py 重新生成)----
+tools/media/stems/
+tools/media/*.wav
+tools/media/*.mp3
+
+# ---- 第三方版权内容(评测用参考谱面/商业录音派生数据; 详见 THIRD_PARTY.md)----
+#   - 从乐谱站抓取的 Verovio SVG 与解析后的谱面 JSON
+tools/score_ref/page*.svg
+tools/score_ref/xiaye_score.json
+
+# ---- 与本项目无关的私人辅助工具 ----
+ncm_tools/
+
+# ---- 系统 / 编辑器 ----
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
+*.swp

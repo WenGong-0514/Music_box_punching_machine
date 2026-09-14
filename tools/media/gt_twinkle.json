@@ -1,0 +1,366 @@
+{
+ "notes": [
+  {
+   "t": 0.0,
+   "midi": 60,
+   "src": "melody"
+  },
+  {
+   "t": 0.0,
+   "midi": 48,
+   "src": "bass"
+  },
+  {
+   "t": 0.5,
+   "midi": 60,
+   "src": "melody"
+  },
+  {
+   "t": 0.5,
+   "midi": 48,
+   "src": "bass"
+  },
+  {
+   "t": 1.0,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 1.0,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 1.5,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 1.5,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 2.0,
+   "midi": 69,
+   "src": "melody"
+  },
+  {
+   "t": 2.0,
+   "midi": 57,
+   "src": "bass"
+  },
+  {
+   "t": 2.5,
+   "midi": 69,
+   "src": "melody"
+  },
+  {
+   "t": 2.5,
+   "midi": 57,
+   "src": "bass"
+  },
+  {
+   "t": 3.0,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 3.0,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 4.0,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 4.5,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 5.0,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 5.5,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 6.0,
+   "midi": 62,
+   "src": "melody"
+  },
+  {
+   "t": 6.0,
+   "midi": 50,
+   "src": "bass"
+  },
+  {
+   "t": 6.5,
+   "midi": 62,
+   "src": "melody"
+  },
+  {
+   "t": 6.5,
+   "midi": 50,
+   "src": "bass"
+  },
+  {
+   "t": 7.0,
+   "midi": 60,
+   "src": "melody"
+  },
+  {
+   "t": 7.0,
+   "midi": 48,
+   "src": "bass"
+  },
+  {
+   "t": 8.0,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 8.0,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 8.5,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 8.5,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 9.0,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 9.5,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 10.0,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 10.5,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 11.0,
+   "midi": 62,
+   "src": "melody"
+  },
+  {
+   "t": 11.0,
+   "midi": 50,
+   "src": "bass"
+  },
+  {
+   "t": 12.0,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 12.0,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 12.5,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 12.5,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 13.0,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 13.5,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 14.0,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 14.5,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 15.0,
+   "midi": 62,
+   "src": "melody"
+  },
+  {
+   "t": 15.0,
+   "midi": 50,
+   "src": "bass"
+  },
+  {
+   "t": 16.0,
+   "midi": 60,
+   "src": "melody"
+  },
+  {
+   "t": 16.0,
+   "midi": 48,
+   "src": "bass"
+  },
+  {
+   "t": 16.5,
+   "midi": 60,
+   "src": "melody"
+  },
+  {
+   "t": 16.5,
+   "midi": 48,
+   "src": "bass"
+  },
+  {
+   "t": 17.0,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 17.0,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 17.5,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 17.5,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 18.0,
+   "midi": 69,
+   "src": "melody"
+  },
+  {
+   "t": 18.0,
+   "midi": 57,
+   "src": "bass"
+  },
+  {
+   "t": 18.5,
+   "midi": 69,
+   "src": "melody"
+  },
+  {
+   "t": 18.5,
+   "midi": 57,
+   "src": "bass"
+  },
+  {
+   "t": 19.0,
+   "midi": 67,
+   "src": "melody"
+  },
+  {
+   "t": 19.0,
+   "midi": 55,
+   "src": "bass"
+  },
+  {
+   "t": 20.0,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 20.5,
+   "midi": 65,
+   "src": "melody"
+  },
+  {
+   "t": 21.0,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 21.5,
+   "midi": 64,
+   "src": "melody"
+  },
+  {
+   "t": 22.0,
+   "midi": 62,
+   "src": "melody"
+  },
+  {
+   "t": 22.0,
+   "midi": 50,
+   "src": "bass"
+  },
+  {
+   "t": 22.5,
+   "midi": 62,
+   "src": "melody"
+  },
+  {
+   "t": 22.5,
+   "midi": 50,
+   "src": "bass"
+  },
+  {
+   "t": 23.0,
+   "midi": 60,
+   "src": "melody"
+  },
+  {
+   "t": 23.0,
+   "midi": 48,
+   "src": "bass"
+  },
+  {
+   "t": 24.0,
+   "midi": 96,
+   "src": "high_oct_test"
+  },
+  {
+   "t": 24.5,
+   "midi": 98,
+   "src": "high_oct_test"
+  },
+  {
+   "t": 25.0,
+   "midi": 100,
+   "src": "high_oct_test"
+  },
+  {
+   "t": 25.5,
+   "midi": 96,
+   "src": "high_oct_test"
+  }
+ ],
+ "bpm": 120.0,
+ "beats_per_sec": 2.0
+}

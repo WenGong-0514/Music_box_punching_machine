@@ -1,0 +1,96 @@
+:root {
+  --bg: #16181d; --panel: #1e2229; --panel2: #242933;
+  --line: #323945; --text: #dde3ea; --muted: #8b96a3;
+  --acc: #e8b04b; --acc2: #5aa7ff; --ok: #3ecf8e; --bad: #e5534b;
+  --mono: Consolas, "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.5 "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+}
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 20;
+}
+header h1 { margin: 0; font-size: 18px; }
+.brand .sub { color: var(--muted); font-size: 12px; margin-left: 10px; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge { font-size: 12px; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--line); color: var(--muted); }
+.badge.ok { color: #0f2; border-color: #2a5; }
+.badge.no { color: #f77; border-color: #a44; }
+
+main { max-width: 1280px; margin: 0 auto; padding: 16px 20px 60px; }
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px 18px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 12px; font-size: 15px; }
+.hint { color: var(--muted); font-weight: normal; font-size: 12px; margin-left: 8px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.hidden { display: none !important; }
+
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0; }
+.wrap { flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.field.inline { flex-direction: row; align-items: center; }
+.field label { font-size: 12px; }
+.spacer { flex: 1; }
+
+input[type=number], select, input[type=range] {
+  background: var(--panel2); border: 1px solid var(--line); color: var(--text);
+  border-radius: 6px; padding: 6px 8px; font-size: 13px; min-width: 110px;
+}
+input[type=number]:focus, select:focus { outline: 1px solid var(--acc2); }
+
+.btn {
+  display: inline-block; background: var(--panel2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px; padding: 7px 14px;
+  font-size: 13px; cursor: pointer; user-select: none;
+}
+.btn:hover:not(:disabled) { border-color: var(--acc2); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: #2d4a68; border-color: #3d6a95; color: #dff; }
+.btn.primary:hover:not(:disabled) { background: #35608c; }
+.btn.danger { color: #ffd7d5; border-color: #7a3431; }
+label.btn { padding: 6px 12px; }
+
+.dropzone {
+  border: 2px dashed var(--line); border-radius: 10px; padding: 26px;
+  text-align: center; color: var(--muted); transition: border-color .15s, background .15s;
+}
+.dropzone.over { border-color: var(--acc); background: #2a2c20; color: #eee; }
+.dz-main { font-size: 15px; margin: 0; }
+
+.wave { width: 100%; height: 90px; background: var(--panel2); border-radius: 8px; margin-top: 10px; }
+
+.prog { width: 100%; height: 10px; background: var(--panel2); border-radius: 6px; overflow: hidden; }
+#progFill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--acc2), var(--acc)); transition: width .3s; }
+
+.tape-toolbar { background: var(--panel2); padding: 8px 10px; border-radius: 8px; }
+.tape-wrap {
+  margin-top: 10px; overflow: auto; background:
+    repeating-linear-gradient(0deg, #191d24, #191d24 28px, #1c2129 28px, #1c2129 56px);
+  border: 1px solid var(--line); border-radius: 8px; max-height: 560px;
+}
+#tapeCanvas { display: block; }
+
+.warn {
+  margin-top: 8px; padding: 8px 10px; border-left: 3px solid var(--acc);
+  background: #2b2618; font-size: 12px; max-height: 160px; overflow: auto; white-space: pre-wrap;
+}
+#arrangeStats { font-family: var(--mono); }
+#tapeStats { font-family: var(--mono); }
+
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+  background: #0c0e11; border: 1px solid var(--acc2); color: #eaf2ff;
+  padding: 10px 18px; border-radius: 8px; z-index: 99; max-width: 80vw; box-shadow: 0 6px 24px #0008;
+}
+.toast.err { border-color: var(--bad); color: #ffe0de; }
+footer { text-align: center; padding: 10px; border-top: 1px solid var(--line); }
+
+canvas { image-rendering: auto; }

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MusicBox Tape Studio · 30音八音盒纸带上位机</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>🎼 MusicBox Tape Studio</h1>
+    <span class="sub">30音八音盒纸带打孔 · 电脑端上位机 (v0.1)</span>
+  </div>
+  <div id="engineBadges" class="badges"></div>
+</header>
+
+<main>
+  <!-- ① 导入 -->
+  <section class="card" id="card-import">
+    <h2>① 导入音频 <span class="hint">MP3 / WAV / FLAC / OGG / M4A</span></h2>
+    <div id="dropzone" class="dropzone">
+      <div class="dz-inner">
+        <p class="dz-main">把音频文件拖到这里, 或 <label class="btn" for="fileInput">选择文件…</label></p>
+        <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a,.aac" hidden>
+      </div>
+    </div>
+    <div id="audioInfo" class="row muted hidden"></div>
+    <canvas id="waveCanvas" width="900" height="90" class="wave hidden"></canvas>
+  </section>
+
+  <!-- ② 识别 -->
+  <section class="card" id="card-recognize">
+    <h2>② 音符识别 <span class="hint">把音频里的音符自动找出来</span></h2>
+    <div class="row wrap">
+      <div class="field">
+        <label>识别引擎</label>
+        <select id="engineSel"></select>
+        <div id="engineHint" class="muted small"></div>
+        <div id="engineUnavail" class="warn small hidden"></div>
+      </div>
+      <div class="field">
+        <label>置信度下限(低→多收杂音, 高→丢弱音)</label>
+        <input id="confIn" type="number" step="0.01" min="0" max="1" value="0.10">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button id="transcribeBtn" class="btn primary" disabled>开始识别</button>
+      </div>
+    </div>
+    <div class="row small" id="omniSvcRow" style="margin-top:4px">
+      <label style="margin-right:6px">Omnizart 服务地址(本机装了该服务走 localhost:8766; 远程则填 http://IP:port):</label>
+      <input id="omniSvc" type="text" style="width:300px"
+             placeholder="http://127.0.0.1:8766" value="http://127.0.0.1:8766">
+      <button id="omniSvcConn" class="btn">测试连接</button>
+      <span id="omniSvcMsg" class="muted small"></span>
+    </div>
+    <div id="progressWrap" class="hidden">
+      <div class="prog"><div id="progFill"></div></div>
+      <span id="progMsg" class="muted small"></span>
+    </div>
+    <div id="notesSummary" class="row muted hidden"></div>
+    <div class="row small">
+      <span class="muted">或用 Omnizart 等高级引擎离线识别后载入结果:</span>
+      <label class="btn" for="notesFile">载入识别 JSON…</label>
+      <input type="file" id="notesFile" accept=".json" hidden>
+      <span id="notesLoadMsg" class="muted"></span>
+    </div>
+    <div class="row small" style="margin-top:6px">
+      <span class="muted">或导入<b>正确乐谱 MIDI</b>直接取谱面音符(可挑乐器轨):</span>
+      <label class="btn" for="midiFile">载入 MIDI 乐谱…</label>
+      <input type="file" id="midiFile" accept=".mid,.midi,.kar" hidden>
+      <span id="midiMsg" class="muted"></span>
+    </div>
+    <div id="midiPanel" class="hidden" style="margin-top:6px; padding:6px; border:1px solid #444; border-radius:4px">
+      <div class="muted small" id="midiInfo"></div>
+      <div id="midiTracks" style="display:flex; flex-wrap:wrap; gap:4px 14px; margin:6px 0"></div>
+      <button id="midiUseBtn" class="btn" disabled>用选中的乐器轨生成纸带</button>
+      <span id="midiHint" class="muted small"></span>
+    </div>
+  </section>
+
+  <!-- ③ 编曲 -->
+  <section class="card" id="card-arrange">
+    <h2>③ 编曲映射 <span class="hint">音符 → 30音纸带孔位</span></h2>
+    <div class="row wrap">
+      <div class="field"><label>速度 BPM</label><input id="bpmIn" type="number" min="20" max="300" value="120"></div>
+      <div class="field"><label>每拍格数(分辨率)</label>
+        <select id="spbSel">
+          <option value="4">4 (16分音符)</option>
+          <option value="8" selected>8 (32分音符)</option>
+          <option value="12">12</option>
+          <option value="16">16 (64分音符)</option>
+        </select>
+      </div>
+      <div class="field"><label>音域外策略</label>
+        <select id="oorSel">
+          <option value="fold" selected>折叠八度收进30音</option>
+          <option value="clamp">夹到边界音</option>
+          <option value="skip">丢弃</option>
+        </select>
+      </div>
+      <div class="field"><label>自动整曲移调(贴合八音盒音域)</label>
+        <select id="autoTrSel">
+          <option value="0">关</option>
+          <option value="6">±6半音</option>
+          <option value="12">±12半音</option>
+          <option value="24" selected>±24半音(推荐)</option>
+        </select>
+      </div>
+      <div class="field"><label>手动移调半音(自动开启时忽略)</label>
+        <input id="trIn" type="number" min="-24" max="24" value="0">
+      </div>
+      <div class="field"><label>同列最小间隔(格, 0=不限)</label><input id="gapIn" type="number" min="0" max="64" value="0"></div>
+      <div class="field"><label>音域上限 MIDI(>此值直接丢, 如92去铃音; 127=不限)</label><input id="maxMidiIn" type="number" min="0" max="127" value="127"></div>
+      <div class="field"><label>音域下限 MIDI(默认0=不限)</label><input id="minMidiIn" type="number" min="0" max="127" value="0"></div>
+      <div class="field"><label>&nbsp;</label><button id="quantizeBtn" class="btn primary" disabled>量化 → 生成纸带</button></div>
+    </div>
+    <div id="arrangeStats" class="row small hidden"></div>
+    <div id="warnList" class="warn hidden"></div>
+  </section>
+
+  <!-- ④ 纸带编辑器 -->
+  <section class="card" id="card-tape">
+    <h2>④ 纸带编辑与预览 <span class="hint">点击=加/删孔, 拖拽框=删除区, 空格=试听</span></h2>
+    <div class="tape-toolbar row wrap">
+      <button id="playBtn" class="btn primary" disabled>▶ 试听播放</button>
+      <button id="stopBtn" class="btn">⏹ 停止</button>
+      <span class="field inline"><label>播放头</label>
+        <input id="playhead" type="range" min="0" max="100" value="0" style="width:220px">
+        <span id="timeLabel" class="muted small">0:00</span>
+      </span>
+      <span class="spacer"></span>
+      <button id="zoomOutBtn" class="btn">−</button>
+      <button id="zoomInBtn" class="btn">＋</button>
+      <button id="fitBtn" class="btn">适应</button>
+      <span class="field inline"><label>编辑工具</label>
+        <select id="toolSel">
+          <option value="toggle">点击加/删孔</option>
+          <option value="erase">拖拽擦除区域</option>
+        </select>
+      </span>
+      <button id="clearBtn" class="btn danger">清空纸带</button>
+    </div>
+    <div class="tape-wrap" id="tapeWrap">
+      <canvas id="tapeCanvas"></canvas>
+    </div>
+    <div class="row muted small" id="tapeStats"></div>
+  </section>
+
+  <!-- ⑤ 导出 -->
+  <section class="card" id="card-export">
+    <h2>⑤ 导出 <span class="hint">纸带数据 → G-code → GRBL 打孔</span></h2>
+    <div class="row wrap">
+      <button id="expJsonBtn" class="btn" disabled>下载 JSON(工程数据)</button>
+      <button id="expCsvBtn" class="btn" disabled>下载 CSV(孔位表)</button>
+      <button id="expSvgBtn" class="btn" disabled>下载 SVG(矢量图)</button>
+      <button id="expPngBtn" class="btn" disabled>下载 PNG(图片)</button>
+      <button id="expMidiBtn" class="btn" disabled title="把当前纸带导出为标准 MIDI(.mid), 可用钢琴/DAW 软件打开演奏">下载 MIDI(钢琴演奏)</button>
+      <button id="gcodeBtn" class="btn primary" disabled title="生成 GRBL 打孔 G-code: 同拍多孔停带按 X 依次冲, 空行跳过; X0=纸带左边缘, Z10=冲孔">生成打孔 G-code(GRBL)</button>
+    </div>
+  </section>
+</main>
+
+<footer class="muted small">
+  30音标准音表: C D G A B C1…E3 (低C起至E3) · 识别引擎: Basic Pitch(深度) / DSP(轻量) · 纸带孔位: row=时间步, col=0..29
+</footer>
+
+<div id="toast" class="toast hidden"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

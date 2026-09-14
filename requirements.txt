@@ -1,0 +1,20 @@
+# 30音八音盒纸带打孔上位机 —— Python 依赖
+# 安装: pip install -r requirements.txt
+# ⚠️ 注意: Basic Pitch 在 Windows + Python3.12 下不能直接 pip 安装
+#   (会强制依赖不兼容的 TensorFlow)。请使用项目 wheel + 轻依赖方式:
+#     pip install third_party\basic_pitch-0.4.0-py2.py3-none-any.whl --no-deps
+#     pip install mir-eval pretty-midi "resampy<0.4.3"
+#   详见 README「依赖安装」。
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+numpy>=1.26
+scipy>=1.11
+soundfile>=0.12
+miniaudio>=1.56        # 免外部程序解码 mp3/wav/flac/ogg
+librosa>=0.10          # Basic Pitch / DSP 运行时依赖
+mir-eval>=0.6
+pretty-midi>=0.2.9
+resampy<0.4.3
+onnxruntime>=1.17      # Basic Pitch 的 ONNX 推理后端
+setuptools<81          # basic_pitch 0.4.0 运行时 import pkg_resources; setuptools>=81 已移除该模块(实测 84 会崩)
