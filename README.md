@@ -1,5 +1,11 @@
 # 🎼 MusicBox Tape Studio
 
+**项目主页 / 源码仓库 / 附件下载: <https://github.com/WenGong-0514/Music_box_punching_machine>**
+
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Music__box__punching__machine-181717?logo=github&logoColor=white)](https://github.com/WenGong-0514/Music_box_punching_machine)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://github.com/WenGong-0514/Music_box_punching_machine/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Python%203.13-3776AB?logo=python&logoColor=white)](#快速开始)
+
 > ⚠️ **AI Generated Project** — 本项目的电脑端全部代码均由 AI（大语言模型）在人工提示词引导下自动生成，**未经过专业人工代码审核**。仅供学习交流使用，使用者需自行承担所有风险。详见下方免责声明。
 
 ---
@@ -21,6 +27,31 @@
 
 本地 Web 应用(Python FastAPI 后端 + 浏览器原生 JS 前端,零构建依赖):
 导入音频或乐谱 MIDI → 得到音符 → 量化到 30 音纸带 → 网格编辑 → 导出纸带/MIDI/图纸/**打孔 G-code**。
+
+---
+
+## 📦 附件与大型文件获取方式
+
+> 本项目同时发布在 **GitHub** 与 **OSHWHub(立创开源硬件平台)**。OSHWHub 侧无法上传大型附件,
+> 因此**大体积文件一律以 GitHub 为准** —— 两个平台的 README 是同一份,看到这节的链接即指向 GitHub 仓库。
+
+**仓库地址(唯一权威来源):<https://github.com/WenGong-0514/Music_box_punching_machine>**
+
+| 内容 | 体积 | 获取方式 |
+|---|---|---|
+| **全部源码 + 文档 + CAD 模型** | 约 11 MB | 直接 `git clone https://github.com/WenGong-0514/Music_box_punching_machine.git`(克隆即全都有) |
+| **Omnizart 钢琴转录模型权重**(`music_piano-v2`) | 约 89 MB | **已随 GitHub 仓库分发**,克隆即得:`third_party/omnizart/checkpoints/music/music_piano-v2/` |
+| **CAD 硬件模型**(`.prt` / `.step`) | 约 9.6 MB | 随仓库分发(已含在上面 11 MB 内),清单见 [docs/HARDWARE.md](docs/HARDWARE.md) |
+| **Omnizart HTTP 引擎镜像** `omnizart-server-cpu.tar` | 约 1.04 GB | **不随仓库分发**(远超 GitHub 单文件 100 MB 限制)。在本地用 `docker build -f deploy_server/Dockerfile.portable -t omnizart:server .` 自行构建,步骤见 [deploy_server/SERVICE-INSTALL.md](deploy_server/SERVICE-INSTALL.md) |
+| **Basic Pitch 引擎** wheel(`basic_pitch-0.4.0`) | 0.7 MB | 随仓库分发:`third_party/basic_pitch-0.4.0-py2.py3-none-any.whl`(ONNX 模型随 wheel 内嵌,免装 TensorFlow) |
+| Demucs 分轨 WAV、导入音频、导出产物 | 数十~数百 MB | 不入库,由你本地生成:`python tools/source_separate.py <音频> --model htdemucs_6s` |
+| 第三方版权内容(参考谱面、商业录音派生数据) | — | **有意不提供**,原因见 [THIRD_PARTY.md §4](THIRD_PARTY.md) |
+
+> 📌 **完整仓库约 100 MB**:其中 89 MB 是上面那个 AI 模型权重,其余源码/文档/CAD 仅约 11 MB。
+
+> 🔎 **从 OSHWHub 来的用户请注意**:下载 GitHub 上的大文件时,请用仓库页面的
+> **`Code` → `Download ZIP`** 按钮,或直接 `git clone`(推荐,便于后续 `git pull` 更新)。
+> 单个文件的直链在 `raw.githubusercontent.com` 上对 >50 MB 的文件不保证可用。
 
 ---
 
