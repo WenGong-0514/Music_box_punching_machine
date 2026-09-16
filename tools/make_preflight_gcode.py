@@ -1,36 +1,46 @@
-"""预校验 G-code 生成器(按用户实测参数, 与 server/gcode.py 同一套语义)。
+"""预校验 G-code 生成器(参数直接取 server/gcode.py 的 MachineParams)。
 
 机器模型:
   X = 纸带横向(音调), X+ 向右; X0 = 纸带左边缘线(冲针圆心, 无半径补偿)
-  Y = 纸带纵向(时间), Y+ 向前; 纸带恒速 8 mm/s
-  Z = 冲针(值越大越往下): 0 = 最高位/快速移动, 6 = 安全高度(抬 4mm), 10 = 冲孔
-      => 单次冲孔 Z 行程 4mm (6 <-> 10)
+  Y = 纸带纵向(时间), Y+ 向前
+  Z = 冲针(值越大越往下): 0 = 空驶/最高位, 4 = 安全高度, 10 = 冲孔
+      => 单次冲孔 Z 行程 6mm (4 <-> 10)
   纸带 70mm 宽, 有效音频区 57.5mm, 左右空白各 6.25mm
   列分布 edge: X(col) = 6.25 + col*(57.5/29)  -> col0=6.25, col29=63.75
   结束: 不回 Y0, 继续向前 50mm 便于剪带
+
+参数不在这里硬编码: 全部来自 MachineParams, 免得跟真正的打孔 G-code 参数漂移
+(以前本文件复制了一份 6 / 480 / 8mm/s, 改一处忘一处就会拿旧参数去"校验")。
 """
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-ROOT = Path(r'D:\dsh_workspace\grbl_dev')
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 OUTDIR = ROOT / 'out'
 
-PAPER_W = 70.0
-AUDIO_W = 57.5
-MARGIN = (PAPER_W - AUDIO_W) / 2.0     # 6.25
-NCOL = 30
-FEED_MM_S = 8.0                        # 纸带恒速 mm/s
-Z_HOME = 0.0                           # 最高位/快速移动
-Z_SAFE = 6.0                           # 安全高度
-Z_WORK = 10.0                          # 冲孔位置
-MOVE_Z = Z_SAFE                        # X/Y 空移时保持的高度
-Z_FEED = 2000.0                        # mm/min
-DWELL = 0.1                            # s
-XY_FEED = 3000.0                       # mm/min
-Y_FEED = 480.0                         # mm/min (= 8mm/s)
-Y_TAIL = 50.0                          # 结束后继续前进 mm
+from server.gcode import MachineParams   # noqa: E402  (要先补好 sys.path)
+
+_P = MachineParams()
+
+PAPER_W = _P.paper_width_mm
+AUDIO_W = _P.audio_width_mm
+MARGIN = _P.margin_mm                  # 6.25
+NCOL = _P.ncol
+FEED_MM_S = _P.feed_mm_s               # 纸带孔距换算 mm/s(几何, 决定音长)
+Z_HOME = _P.z_home                     # 空驶/最高位
+Z_SAFE = _P.z_safe                     # 安全高度
+Z_WORK = _P.z_work                     # 冲孔位置
+MOVE_Z = _P.move_z                     # X/Y 空移时保持的高度
+Z_FEED = _P.z_feed                     # mm/min
+DWELL = _P.dwell_s                     # s
+XY_FEED = _P.xy_feed                   # mm/min
+Y_FEED = _P.y_feed_mm_min              # mm/min, 打孔送带 F(只影响打孔耗时)
+Y_TAIL = _P.y_tail_mm                  # 结束后继续前进 mm
 
 doc = json.loads((ROOT / 'data' / 'project.json').read_text(encoding='utf-8'))
 tape = doc['tape']
@@ -57,16 +67,17 @@ def f(v: float) -> str:
 HEADER = [
     '; 机器坐标:',
     ';   X = 纸带横向(音调), X+ = 向右;  X0 = 纸带左边缘线(冲针圆心, 无半径补偿)',
-    ';   Y = 纸带纵向(时间),   Y+ = 纸带向前;  名义速度 %.1f mm/s' % FEED_MM_S,
-    ';   Z = 冲针(值越大越往下): %s = 最高位/快速移动, %s = 安全高度(抬 %.0fmm), %s = 冲孔'
-    % (f(Z_HOME), f(Z_SAFE), abs(Z_WORK - Z_SAFE), f(Z_WORK)),
-    ';   => 单次冲孔 Z 行程 %.0f mm' % abs(Z_WORK - MOVE_Z),
+    ';   Y = 纸带纵向(时间),   Y+ = 纸带向前;  孔距换算 %.1f mm/s' % FEED_MM_S,
+    ';   Z = 冲针(值越大越往下): %s = 空驶高度/最高位, %s = 安全高度, %s = 冲孔(工作位)'
+    % (f(Z_HOME), f(Z_SAFE), f(Z_WORK)),
+    ';   => 单次冲孔 Z 行程 %.0f mm (安全高度 %s <-> 工作位 %s)' % (abs(Z_WORK - MOVE_Z), f(MOVE_Z), f(Z_WORK)),
     '; 纸带: 宽 %.1fmm, 有效音频区 %.1fmm, 左右空白各 %.3fmm' % (PAPER_W, AUDIO_W, MARGIN),
     '; 列分布 edge: X(col) = %.3f + col * %.6f  (col0=%.3f, col29=%.3f)'
     % (MARGIN, AUDIO_W / (NCOL - 1), x_of_col(0), x_of_col(NCOL - 1)),
     '; Y 换算: %.1f mm/s x 时间; 本纸带 bpm=%g, %d格/拍 -> 每步 %.4f mm'
     % (FEED_MM_S, bpm, spb, mm_per_step),
-    '; 工艺: Z %.0f mm/min, 停留 %.2fs, X 空移 %.0f mm/min, 送带 %.0f mm/min'
+    ';   八音盒上的节奏 = 孔距 ÷ 盒子走带速度, 与下面的送带 F 无关',
+    '; 工艺: Z %.0f mm/min, 停留 %.2fs, X 空移 %.0f mm/min, 送带 F%.0f mm/min'
     % (Z_FEED, DWELL, XY_FEED, Y_FEED),
     '; 结束: 不回 Y0, 继续向前 %.0fmm 便于剪带' % Y_TAIL,
 ]

@@ -35,6 +35,11 @@ out/
 *.tgz
 omnizart-server-*.tar
 
+# ---- 例外: Omnizart 模型权重随仓库分发(约 90MB, 未超 GitHub 单文件 100MB 限制)----
+#   checkpoints/ 下的 .pb / .data-00000-of-00001 属于 AI 模型权重, 体积虽大但为运行时必需,
+#   故显式保留; 若日后想去掉, 删除下面这行即可(并同步更新 THIRD_PARTY.md §4)。
+!third_party/omnizart/checkpoints/**
+
 # ---- 大体积音频素材(Demucs 分轨等; 可由 tools/source_separate.py 重新生成)----
 tools/media/stems/
 tools/media/*.wav

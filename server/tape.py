@@ -88,12 +88,13 @@ class Tape:
     def notes_playing(self, row: int) -> list[int]:
         return [h["col"] for h in self.holes if h["row"] == row]
 
-    # ---- 机器参数占位(后续 G-code 阶段使用) ----
+    # ---- 机器参数(仅存档/溯源, 不参与计算; 权威值见 server/gcode.py MachineParams) ----
+    # 注意: mm_per_step 实际 = 每步秒数 × feed_mm_s(随 bpm/每拍格数变化), 下面只是名义值。
     MACHINE_DEFAULTS = {
-        "mm_per_step": 2.0,        # 一个时间步对应的纸带推进距离(mm)
-        "feed_mm_s": 8.0,          # 打孔时纸带匀速进给速度(mm/s)
+        "mm_per_step": 2.0,        # 名义值; 实际值见 gcode.plan() 返回的 mm_per_step
+        "feed_mm_s": 16.0,         # 纸带孔距换算速度(mm/s): 决定音长/音梳复位时间
         "paper_width_mm": 70.0,    # 纸带宽
-        "col_pitch_mm": 2.0,       # 相邻打孔列间距
+        "col_pitch_mm": 1.982759,  # 相邻打孔列间距 = 57.5/29
         "hole_diameter_mm": 2.0,   # 孔直径
     }
 

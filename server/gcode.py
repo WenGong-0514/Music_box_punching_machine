@@ -2,12 +2,18 @@
 
 机器模型(按用户实测确认):
   X = 纸带横向(音调), X+ 向右;  X0 = 纸带左边缘线(冲针圆心, 无半径补偿)
-  Y = 纸带纵向(时间),   Y+ 向前;  纸带名义速度 8 mm/s
+  Y = 纸带纵向(时间),   Y+ 向前
   Z = 冲针(值越大越往下):
-      0  = 最高位(快速移动位 / 回原点)
-      6  = 安全高度(由 10 抬起 4mm; 针尖离纸带, 可在其下移动 X/Y)
+      0  = 空驶高度 / 最高位(快速移动位、回原点)
+      4  = 安全高度(针尖离纸带, 可在其下移动 X/Y)
       10 = 冲孔(工作位置)
-  => 每次冲孔的实际 Z 行程 = 4mm (6 -> 10 -> 6)
+  => 每次冲孔的实际 Z 行程 = 6mm (4 -> 10 -> 4)
+
+  !! 两个"速度"是两件事, 不要混:
+     feed_mm_s     纸带孔距换算(几何): mm_per_step = 每步秒数 * feed_mm_s
+                   => 决定孔与孔的距离 = 八音盒上听起来多快 / 音梳有多少时间复位
+     y_feed_mm_min 打孔机送带进给(G-code 里的 F): 只决定"打孔要打多久", 不影响音乐
+     (八音盒上的实际节奏 = 孔距 ÷ 八音盒走带速度, 与 y_feed_mm_min 无关)
   纸带 70mm 宽, 有效音频区 57.5mm, 左右空白各 6.25mm
   列分布(edge): X(col) = 6.25 + col*(57.5/29) -> col0=6.25, col29=63.75
   结束时: 不回 Y0, 而是继续向前 y_tail_mm(默认 50mm)便于剪下纸带
@@ -16,7 +22,7 @@
   - 同一 row 的多孔 = 同一横线, 纸带停住, 按 X 依次冲完该行
   - 每行从离当前 X 最近的一端进入(少空移)
   - 空行跳过(只对有孔行定位)
-  - X/Y 移动都在安全高度(默认 6)进行, 冲孔才是 6<->10
+  - X/Y 移动都在安全高度(默认 4)进行, 冲孔才是 4<->10
 """
 from __future__ import annotations
 
@@ -31,15 +37,17 @@ class MachineParams:
     audio_width_mm: float = 57.5
     ncol: int = 30
     col_mode: str = "edge"            # 'edge' = 首末列圆心贴有效区两端(用户已确认)
-    feed_mm_s: float = 8.0            # 纸带名义速度 mm/s
-    z_home: float = 0.0               # 最高位/快速移动位
-    z_safe: float = 6.0               # 安全高度(针尖离纸带)
+    feed_mm_s: float = 16.0           # 纸带孔距换算 mm/s(几何): 8 -> 16 = 孔距翻倍
+                                      #   决定音长与音梳复位时间; 与打孔快慢无关
+    z_home: float = 0.0               # 空驶高度/最高位(快速移动位)
+    z_safe: float = 4.0               # 安全高度(针尖离纸带)
     z_work: float = 10.0              # 冲孔(工作)位置
     z_feed: float = 2000.0            # mm/min, Z 下压/抬起(用户实测上限)
-    move_z: float = 6.0               # X/Y 空移时保持的 Z(安全高度; 设 0 = 每次回最高位)
+    move_z: float = 4.0               # X/Y 空移时保持的 Z(安全高度; 设 0 = 每次回最高位)
     dwell_s: float = 0.1              # 冲孔停留
     xy_feed: float = 3000.0           # mm/min, X 空移
-    y_feed_mm_min: float = 480.0      # mm/min, 送带(= 8mm/s*60)
+    y_feed_mm_min: float = 1000.0     # mm/min, 打孔机送带 F(用户 Y 轴实测值)
+                                      #   只影响打孔耗时; 若 $111 允许也可提到 2000
     y_tail_mm: float = 50.0           # 结束后继续前进(便于剪带)
     include_header: bool = True
 
@@ -140,10 +148,13 @@ def tape_to_gcode(tape: Tape, table=None, params: MachineParams | None = None) -
         A(";")
         A("; 机器坐标:")
         A(";   X = 纸带横向(音调), X+ = 向右;  X0 = 纸带左边缘线(冲针圆心, 无半径补偿)")
-        A(";   Y = 纸带纵向(时间),   Y+ = 纸带向前;  名义速度 %.1f mm/s" % p.feed_mm_s)
-        A(";   Z = 冲针(值越大越往下): %s = 最高位/快速移动, %s = 安全高度(抬 %.0fmm), %s = 冲孔"
-          % (fmt(p.z_home), fmt(p.z_safe), abs(p.z_work - p.z_safe), fmt(p.z_work)))
-        A(";   => 单次冲孔 Z 行程 = %.0f mm (安全位 <-> 工作位)" % p.z_stroke_mm)
+        A(";   Y = 纸带纵向(时间),   Y+ = 纸带向前;  孔距换算 %.1f mm/s (每步 %.4f mm)"
+          % (p.feed_mm_s, planned["mm_per_step"]))
+        A(";       !! 八音盒上的节奏 = 孔距 ÷ 盒子走带速度; 下面的送带 F 只决定打孔耗时, 不影响音乐")
+        A(";   Z = 冲针(值越大越往下): %s = 空驶高度/最高位, %s = 安全高度, %s = 冲孔(工作位)"
+          % (fmt(p.z_home), fmt(p.z_safe), fmt(p.z_work)))
+        A(";   => 单次冲孔 Z 行程 = %.0f mm (安全高度 %s <-> 工作位 %s)"
+          % (p.z_stroke_mm, fmt(p.move_z), fmt(p.z_work)))
         A("; 纸带 %.1fmm 宽, 有效音频区 %.1fmm, 左右空白各 %.3fmm"
           % (p.paper_width_mm, p.audio_width_mm, p.margin_mm))
         if p.col_mode == "edge":
@@ -158,11 +169,12 @@ def tape_to_gcode(tape: Tape, table=None, params: MachineParams | None = None) -
         A(";")
         A("; 路线: 同拍多孔=停带按 X 依次冲; 每行从最近端进入; 空行跳过")
         A(";       X/Y 移动保持在 Z%s(%s); 冲孔走 %s <-> %s"
-          % (fmt(p.move_z), "安全高度" if p.move_z else "最高位", fmt(p.move_z), fmt(p.z_work)))
+          % (fmt(p.move_z), "安全高度" if p.move_z else "空驶/最高位", fmt(p.move_z), fmt(p.z_work)))
         A("; 结束: 不回 Y0; 冲完后继续向前 %.0fmm 便于剪带" % p.y_tail_mm)
         A(";")
-        A("; Z 速度 %.0f mm/min; 停留 %.2fs; X 空移 %.0f mm/min; 送带 %.0f mm/min"
+        A("; Z 速度 %.0f mm/min; 停留 %.2fs; X 空移 %.0f mm/min; 送带 F%.0f mm/min"
           % (p.z_feed, p.dwell_s, p.xy_feed, p.y_feed_mm_min))
+        A(";   (送带 F 只影响打孔耗时; 孔距/音乐节奏由上面的 %.1f mm/s 决定)" % p.feed_mm_s)
         A("; 预估: %d 孔 / %d 个有孔行 / 冲孔段纸带 %.1f mm / 全过程约 %.1f 分钟"
           % (est["holes"], est["rows_with_holes"], est["punch_len_mm"], est["total_minutes"]))
         A(";   分解: 送带 %.0fs | X空移 %.0fs | Z冲程 %.0fs | 停留 %.0fs"

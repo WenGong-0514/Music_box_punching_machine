@@ -330,12 +330,11 @@ $('#quantizeBtn').addEventListener('click', async () => {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    setTapeFromServer(res.tape);
+    setTapeFromServer(res.tape);   // 内部按 hole_count 统一开关导出/播放按钮(含 G-code)
     state.tableNotes = res.table.notes;
     view.setTable(state.tableNotes);
     view.fit();
     renderStats(res.stats);
-    $('#gcodeBtn').disabled = true;   // 下一阶段
     toast(`已生成纸带: ${res.tape.hole_count} 孔`);
   } catch (e) {
     toast('量化失败: ' + e.message, true);
