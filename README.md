@@ -133,6 +133,26 @@ run.bat
 - 纸带 70mm 宽,有效音频区 57.5mm,左右空白各 6.25mm;列分布 `X(col)=6.25+col×(57.5/29)`。
 - 结束不回 Y0,而是继续前进 50mm 便于剪带。
 
+### GRBL 实机设置
+
+以下是本机 CMS3 控制板的**实际 GRBL 设置**(`$` 参数),含各轴 **steps/mm(走 1mm 需要多少脉冲)**、
+最大速率、加速度、行程上限。用 GRBL-Plotter 的 `Grbl Setup Form` 直接读写:
+
+![GRBL 实机设置(CMS3):$100-102 steps/mm、$110-112 最大速率、$120-122 加速度、$130-132 行程](docs/images/grbl-settings.png)
+
+关键值速查(完整说明与「建议值 vs 本机实测值」对照见 [docs/MACHINE.md §7](docs/MACHINE.md)):
+
+| 轴 | steps/mm | 最大速率 (mm/min) | 加速度 (mm/s²) |
+|---|---|---|---|
+| X(纸带横向 = 音调) | **403** | 2500 | 2000 |
+| Y(纸带纵向 = 时间/送带) | **53** | 2500 | 2000 |
+| Z(冲针) | **400** | 2500 | **400** |
+
+> ⚠️ **数值以本机实测为准**。换机械、换驱动细分或改皮带/丝杆后,**必须重新标定 `$100-102`**,
+> 否则孔位间距会整体比例错误。程序内已含 `G21`/`G90`/`G94`,单位是 mm。
+> 注意 `xy_feed` 的代码默认值(3000 mm/min)高于本机 `$110`/`$111` 上限(2500)——
+> 详见 [docs/MACHINE.md §7](docs/MACHINE.md)。
+
 👉 **完整规格、参数表、上机前校验流程与 GRBL 设置建议见 [docs/MACHINE.md](docs/MACHINE.md)**。
 硬件构成、CAD 模型与**来源/许可/元数据提示**见 [docs/HARDWARE.md](docs/HARDWARE.md)。
 （控制系统为商业成品 **CMS3**;发送 G-code 使用第三方软件 **GRBL-Plotter**;冲头压纸弹簧由
@@ -176,6 +196,7 @@ tools/           命令行工具: 合成测试音频、e2e 冒烟、评测、预
 deploy_server/   把 Omnizart 部署成 HTTP 引擎服务(容器 / 安装文档 / GPU 复现)
 data/            音表配置(note_table_30note.json)与自动存档(project.json, 已忽略)
 docs/            开发者文档与参考(MACHINE / DEVELOPMENT / ENGINES / HISTORY)
+docs/images/     文档插图(如 GRBL 实机设置截图)
 ```
 
 ---
