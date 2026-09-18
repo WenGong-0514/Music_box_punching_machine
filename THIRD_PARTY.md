@@ -57,7 +57,7 @@ onnxruntime(MIT)、setuptools(<81, MIT)。完整与最新版本见 [`requirement
 |---|---|---|
 | `data/sessions/**`(导入音频与解码 wav) | 体积大、含个人音频 | 直接导入你自己的音频即可自动生成 |
 | `data/project.json` | 自动存档,频繁变更且体积大 | 首次运行/量化后自动生成 |
-| `out/**` | 生成物 + 可能含**商业录音** | 由 GUI ⑤ 导出或 `tools/make_preflight_gcode.py` 生成 |
+| `out/**` | 生成物 + 可能含**商业录音** | 由 GUI ⑥ 导出或 `tools/make_preflight_gcode.py` 生成 |
 | `omnizart-server-*.tar`(约 1GB 镜像) | 体积过大,不适合 Git | 用 `deploy_server/Dockerfile.portable` 自行构建 |
 | `tools/media/stems/**`(Demucs 分轨 WAV) | 体积大,且派生自商业录音 | `python tools/source_separate.py <音频> --model htdemucs_6s` |
 | `tools/score_ref/page*.svg`、`tools/score_ref/xiaye_score.json` | **第三方乐谱**(抓取自乐谱站,版权归原作者) | 仅用于本地个人学习对比;需要时自行获取 |

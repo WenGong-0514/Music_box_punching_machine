@@ -3,14 +3,16 @@
 机器模型:
   X = 纸带横向(音调), X+ 向右; X0 = 纸带左边缘线(冲针圆心, 无半径补偿)
   Y = 纸带纵向(时间), Y+ 向前
-  Z = 冲针(值越大越往下): 0 = 空驶/最高位, 4 = 安全高度, 10 = 冲孔
-      => 单次冲孔 Z 行程 6mm (4 <-> 10)
+  Z = 冲针(值越大越往下): 移动高度 = 完全不冲孔时(G00 首尾/尾部外送带)
+                            安全高度 = 冲孔后抬起位; 打孔阶段所有移动都在此
+                            工作高度 = 冲孔位
+      => 单次冲孔 Z 行程 = 安全高度 <-> 工作高度
   纸带 70mm 宽, 有效音频区 57.5mm, 左右空白各 6.25mm
   列分布 edge: X(col) = 6.25 + col*(57.5/29)  -> col0=6.25, col29=63.75
   结束: 不回 Y0, 继续向前 50mm 便于剪带
 
-参数不在这里硬编码: 全部来自 MachineParams, 免得跟真正的打孔 G-code 参数漂移
-(以前本文件复制了一份 6 / 480 / 8mm/s, 改一处忘一处就会拿旧参数去"校验")。
+参数不在这里硬编码: 机械常量取 MachineParams, 三个 Z 高度取工程里 GUI ⑤ 选定的值
+(doc["z_params"]), 免得跟真正的打孔 G-code 参数漂移。
 """
 from __future__ import annotations
 
@@ -23,27 +25,30 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 OUTDIR = ROOT / 'out'
 
-from server.gcode import MachineParams   # noqa: E402  (要先补好 sys.path)
+from server.gcode import params_from   # noqa: E402  (要先补好 sys.path)
 
-_P = MachineParams()
+doc = json.loads((ROOT / 'data' / 'project.json').read_text(encoding='utf-8'))
+# 与 GUI ⑤ 里选定的三个 Z 高度保持一致(没选过就用 MachineParams 默认)
+_P = params_from(doc.get('z_params'))
 
 PAPER_W = _P.paper_width_mm
 AUDIO_W = _P.audio_width_mm
 MARGIN = _P.margin_mm                  # 6.25
 NCOL = _P.ncol
 FEED_MM_S = _P.feed_mm_s               # 纸带孔距换算 mm/s(几何, 决定音长)
-Z_HOME = _P.z_home                     # 空驶/最高位
-Z_SAFE = _P.z_safe                     # 安全高度
-Z_WORK = _P.z_work                     # 冲孔位置
-MOVE_Z = _P.move_z                     # X/Y 空移时保持的高度
+Z_TRAVEL = _P.z_travel                 # 移动高度(G00 首尾/尾部外送带)
+Z_SAFE = _P.z_safe                     # 安全高度(冲孔后抬起; 打孔阶段移动都在此)
+Z_WORK = _P.z_work                     # 工作高度(冲孔)
 Z_FEED = _P.z_feed                     # mm/min
 DWELL = _P.dwell_s                     # s
 XY_FEED = _P.xy_feed                   # mm/min
 Y_FEED = _P.y_feed_mm_min              # mm/min, 打孔送带 F(只影响打孔耗时)
 Y_TAIL = _P.y_tail_mm                  # 结束后继续前进 mm
 
-doc = json.loads((ROOT / 'data' / 'project.json').read_text(encoding='utf-8'))
 tape = doc['tape']
+if not tape:
+    raise SystemExit('工程里还没有纸带(data/project.json 的 tape 为空)。\n'
+                     '先在 GUI ③ 量化生成纸带, 再跑本工具。')
 holes = tape['holes']
 bpm = float(tape['bpm'])
 spb = int(tape['steps_per_beat'])
@@ -68,9 +73,11 @@ HEADER = [
     '; 机器坐标:',
     ';   X = 纸带横向(音调), X+ = 向右;  X0 = 纸带左边缘线(冲针圆心, 无半径补偿)',
     ';   Y = 纸带纵向(时间),   Y+ = 纸带向前;  孔距换算 %.1f mm/s' % FEED_MM_S,
-    ';   Z = 冲针(值越大越往下): %s = 空驶高度/最高位, %s = 安全高度, %s = 冲孔(工作位)'
-    % (f(Z_HOME), f(Z_SAFE), f(Z_WORK)),
-    ';   => 单次冲孔 Z 行程 %.0f mm (安全高度 %s <-> 工作位 %s)' % (abs(Z_WORK - MOVE_Z), f(MOVE_Z), f(Z_WORK)),
+    ';   Z = 冲针(值越大越往下): %s = 移动高度(G00 首尾/尾部外送带), %s = 安全高度'
+    '(冲孔后抬起; 打孔阶段移动都在此), %s = 工作高度(冲孔)'
+    % (f(Z_TRAVEL), f(Z_SAFE), f(Z_WORK)),
+    ';   => 单次冲孔 Z 行程 %.0f mm (安全高度 %s <-> 工作高度 %s)'
+    % (abs(Z_WORK - Z_SAFE), f(Z_SAFE), f(Z_WORK)),
     '; 纸带: 宽 %.1fmm, 有效音频区 %.1fmm, 左右空白各 %.3fmm' % (PAPER_W, AUDIO_W, MARGIN),
     '; 列分布 edge: X(col) = %.3f + col * %.6f  (col0=%.3f, col29=%.3f)'
     % (MARGIN, AUDIO_W / (NCOL - 1), x_of_col(0), x_of_col(NCOL - 1)),
@@ -90,7 +97,7 @@ def punch(seq: list[str], x: float, y: float, label: str) -> None:
     seq.append('G0 X%s' % f(x))
     seq.append('G1 Z%s F%.0f' % (f(Z_WORK), Z_FEED))
     seq.append('G4 P%.3f' % DWELL)
-    seq.append('G1 Z%s F%.0f' % (f(MOVE_Z), Z_FEED))
+    seq.append('G1 Z%s F%.0f' % (f(Z_SAFE), Z_FEED))
     seq.append(';   col %d' % int(round((x - MARGIN) / (AUDIO_W / (NCOL - 1)))))
 
 
@@ -99,13 +106,15 @@ def write(path: Path, title: str, body: list[str], end_y: float) -> None:
     lines += HEADER
     lines += [';']
     lines += ['G21', 'G90', 'G94', '',
-              '; --- 回最高位与原点 ---', 'G0 Z%s' % f(Z_HOME), 'G0 X0 Y0']
-    if MOVE_Z != Z_HOME:
-        lines += ['; 降到安全高度(之后 X/Y 移动都在此高度)', 'G0 Z%s' % f(MOVE_Z)]
+              '; --- 回移动高度与原点 ---', 'G0 Z%s' % f(Z_TRAVEL), 'G0 X0 Y0']
+    if Z_SAFE != Z_TRAVEL:
+        lines += ['; 降到安全高度: 打孔阶段(行内横移 + 换行送带)都在此高度',
+                  'G0 Z%s' % f(Z_SAFE)]
     lines += body
-    lines += ['', '; --- 结束: 继续向前 %.0fmm 便于剪带(不回 Y0) ---' % Y_TAIL,
-              'G1 Y%s F%.0f' % (f(end_y + Y_TAIL), Y_FEED),
-              'G0 Z%s' % f(Z_HOME), 'M30']
+    lines += ['', '; --- 结束: 抬到移动高度, 继续向前 %.0fmm 便于剪带(不回 Y0) ---' % Y_TAIL]
+    if Z_TRAVEL != Z_SAFE:
+        lines += ['G0 Z%s' % f(Z_TRAVEL)]
+    lines += ['G1 Y%s F%.0f' % (f(end_y + Y_TAIL), Y_FEED), 'M30']
     path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 

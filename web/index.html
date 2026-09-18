@@ -148,16 +148,45 @@
     <div class="row muted small" id="tapeStats"></div>
   </section>
 
-  <!-- ⑤ 导出 -->
+  <!-- ⑤ 打孔 Z 高度(生成 G-code 前确认) -->
+  <section class="card" id="card-z">
+    <h2>⑤ 打孔 Z 高度 <span class="hint">生成打孔 G-code 前选定;三个位置各管一段动作</span></h2>
+    <div class="row wrap">
+      <div class="field">
+        <label>工作高度(冲孔时的位置)</label>
+        <input id="zWorkIn" type="number" step="0.1" min="0" max="200" value="10">
+      </div>
+      <div class="field">
+        <label>安全高度(冲孔后抬起时的位置)</label>
+        <input id="zSafeIn" type="number" step="0.1" min="0" max="200" value="4">
+      </div>
+      <div class="field">
+        <label>移动高度(完全不冲孔时移动的高度, G00)</label>
+        <input id="zTravelIn" type="number" step="0.1" min="0" max="200" value="0">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button id="zApplyBtn" class="btn primary">应用这三个高度</button>
+      </div>
+    </div>
+    <div id="zHint" class="row small muted"></div>
+    <div id="zWarn" class="warn small hidden"></div>
+    <div class="row small muted">
+      Z 值越大越往下,所以必须 <b>移动高度 ≤ 安全高度 ≤ 工作高度</b>;
+      点⑥的「生成打孔 G-code」时也会自动应用这三个值,不必先手动点应用。
+    </div>
+  </section>
+
+  <!-- ⑥ 导出 -->
   <section class="card" id="card-export">
-    <h2>⑤ 导出 <span class="hint">纸带数据 → G-code → GRBL 打孔</span></h2>
+    <h2>⑥ 导出 <span class="hint">纸带数据 → G-code → GRBL 打孔</span></h2>
     <div class="row wrap">
       <button id="expJsonBtn" class="btn" disabled>下载 JSON(工程数据)</button>
       <button id="expCsvBtn" class="btn" disabled>下载 CSV(孔位表)</button>
       <button id="expSvgBtn" class="btn" disabled>下载 SVG(矢量图)</button>
       <button id="expPngBtn" class="btn" disabled>下载 PNG(图片)</button>
       <button id="expMidiBtn" class="btn" disabled title="把当前纸带导出为标准 MIDI(.mid), 可用钢琴/DAW 软件打开演奏">下载 MIDI(钢琴演奏)</button>
-      <button id="gcodeBtn" class="btn primary" disabled title="生成 GRBL 打孔 G-code: 同拍多孔停带按 X 依次冲, 空行跳过; X0=纸带左边缘, Z10=冲孔">生成打孔 G-code(GRBL)</button>
+      <button id="gcodeBtn" class="btn primary" disabled title="生成 GRBL 打孔 G-code: 冲孔到工作高度, 冲完抬到安全高度; 行内横移与换行送带都在安全高度; 首尾与尾部外送带走移动高度; X0=纸带左边缘">生成打孔 G-code(GRBL)</button>
     </div>
   </section>
 </main>

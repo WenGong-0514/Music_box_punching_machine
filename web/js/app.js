@@ -455,7 +455,78 @@ window.addEventListener('keydown', e => {
   }
 });
 
-// ---------------- ⑤ 导出 ----------------
+// ---------------- ⑤ 打孔 Z 高度(生成 G-code 前选定) ----------------
+let zCurrent = null;
+
+function zInputs() {
+  return {
+    z_work: parseFloat($('#zWorkIn').value),
+    z_safe: parseFloat($('#zSafeIn').value),
+    z_travel: parseFloat($('#zTravelIn').value),
+  };
+}
+
+function zDirty() {
+  if (!zCurrent) return false;
+  const cur = zInputs();
+  return ['z_work', 'z_safe', 'z_travel'].some(k => Number(cur[k]) !== Number(zCurrent[k]));
+}
+
+function renderZHint(z, dirty = false) {
+  const stroke = Math.abs(z.z_work - z.z_safe);
+  $('#zHint').innerHTML =
+    (dirty ? '<b style="color:#e8b04b">● 输入框有改动未应用 —— </b>' : '') +
+    `当前生效: 工作 <b>${z.z_work}</b> / 安全 <b>${z.z_safe}</b> / 移动 <b>${z.z_travel}</b> mm` +
+    ` · 单次冲孔 Z 行程 <b>${stroke.toFixed(2)}mm</b>(越小节拍越快)<br>` +
+    `冲孔 <code>G1 Z${z.z_work}</code> → 抬起 <code>G1 Z${z.z_safe}</code>;` +
+    `行内横移与换行送带都在 Z${z.z_safe}` +
+    `(安全高度);程序首尾与最后 50mm 外送带在 Z${z.z_travel}(移动高度, G00)。`;
+}
+
+function zFillForm(z) {
+  $('#zWorkIn').value = z.z_work;
+  $('#zSafeIn').value = z.z_safe;
+  $('#zTravelIn').value = z.z_travel;
+}
+
+async function zPush() {
+  const d = await api('/api/gcode/params', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(zInputs()),
+  });
+  zCurrent = d.current;
+  zFillForm(d.current);
+  renderZHint(d.current);
+  $('#zWarn').classList.add('hidden');
+  return d.current;
+}
+
+async function zLoad() {
+  try {
+    const d = await api('/api/gcode/params');
+    zCurrent = d.current;
+    zFillForm(d.current);
+    renderZHint(d.current);
+  } catch (e) {
+    $('#zWarn').textContent = '✗ 读取 Z 高度失败: ' + e.message;
+    $('#zWarn').classList.remove('hidden');
+  }
+}
+
+$('#zApplyBtn').addEventListener('click', async () => {
+  try {
+    const z = await zPush();
+    toast(`Z 高度已应用: 工作 ${z.z_work} / 安全 ${z.z_safe} / 移动 ${z.z_travel}`);
+  } catch (e) {
+    $('#zWarn').textContent = '✗ ' + e.message;
+    $('#zWarn').classList.remove('hidden');
+    toast('Z 高度不合法: ' + e.message, true);
+  }
+});
+['#zWorkIn', '#zSafeIn', '#zTravelIn'].forEach(sel =>
+  $(sel).addEventListener('input', () => { if (zCurrent) renderZHint(zCurrent, zDirty()); }));
+
+// ---------------- ⑥ 导出 ----------------
 function downloadFrom(url, name) {
   const a = document.createElement('a');
   a.href = url; a.download = name || ''; document.body.appendChild(a); a.click(); a.remove();
@@ -473,7 +544,16 @@ $('#expPngBtn').addEventListener('click', () => {
   document.body.appendChild(a); a.click(); a.remove();
 });
 $('#gcodeBtn').addEventListener('click', async () => {
-  // 先请求统计(顺便校验后端能生成), 再走浏览器下载
+  // ① 先把⑤里选的三个 Z 高度应用到后端(现场校验: 不合法就中止, 免得打出错误动作)
+  try {
+    await zPush();
+  } catch (e) {
+    $('#zWarn').textContent = '✗ ' + e.message;
+    $('#zWarn').classList.remove('hidden');
+    toast('Z 高度不合法, 未生成 G-code: ' + e.message, true);
+    return;
+  }
+  // ② 请求统计(顺便校验后端能生成), 再走浏览器下载
   try {
     const res = await api('/api/gcode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     const s = res.stats || {};
@@ -523,6 +603,8 @@ async function boot() {
     }
     const g = meta.engines.find(e => e.id === 'basic_pitch');
     if (g && !g.available) toast('注意: Basic Pitch 不可用, 请见 README 安装说明', true);
+    // ⑤ 打孔 Z 高度(后端存的是上次选定的值; 缺省 = MachineParams 默认)
+    await zLoad();
   } catch (e) {
     toast('启动失败(后端未就绪?): ' + e.message, true);
   }

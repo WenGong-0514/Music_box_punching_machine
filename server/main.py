@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import fields as _dc_fields
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -13,8 +14,11 @@ from fastapi.staticfiles import StaticFiles
 
 from .api import make_router
 from .notetable import NoteTable, load_note_table
-from .state import AppState, ensure_dirs
+from .state import SESSIONS_DIR, AppState, Session, ensure_dirs
 from .tape import Tape
+
+# Session 的字段名, 用来把 project.json 里的 session 字典安全地还原成 dataclass
+_SESSION_FIELDS = {f.name for f in _dc_fields(Session)}
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -42,6 +46,21 @@ def _restore() -> None:
             state.table = None
     if state.table is None:
         state.table = load_note_table(DEFAULT_TABLE_FILE)
+    # 会话(音频/MIDI + 识别出的音符) —— 必须恢复:
+    # 否则重启后 state.session 为 None, 前端 boot() 拿不到 note_count,
+    # ③「量化 → 生成纸带」按钮会一直是灰的(纸带却还在, 看起来像 bug)。
+    if doc and doc.get("session"):
+        try:
+            sess = Session(**{k: v for k, v in doc["session"].items()
+                              if k in _SESSION_FIELDS})
+            sess.notes = list(doc.get("notes") or [])
+            # 解码缓存的 wav 若还在, 一并接回(重启后仍可直接重新识别)
+            wav = SESSIONS_DIR / sess.id / "mono.wav"
+            if wav.exists():
+                sess.wav_path = str(wav)
+            state.session = sess
+        except Exception:
+            state.session = None
     # 纸带(自包含, 可离线恢复)
     if doc and doc.get("tape"):
         try:
@@ -49,6 +68,8 @@ def _restore() -> None:
         except Exception:
             state.tape = None
     state.quantize_stats = (doc or {}).get("quantize_stats", {})
+    # 打孔 Z 三层(用户在 ⑤ 选过的值; 缺省时用 MachineParams 默认)
+    state.z_params = dict((doc or {}).get("z_params") or {})
 
 
 _restore()
@@ -62,8 +83,23 @@ def health():
     return {"ok": True, "table_loaded": state.table is not None}
 
 
+class _NoCacheStatic(StaticFiles):
+    """静态资源禁用浏览器缓存(本地单机上位机专用)。
+
+    Starlette 默认只给 ETag/Last-Modified, 浏览器会按"启发式缓存"直接复用旧 js/css,
+    连一次 304 询问都不发 —— 现象就是: index.html 是新的(界面多了控件),
+    但 app.js 还是旧的(控件点了没反应、请求也发不出去)。
+    web/ 会随开发频繁改动, 这里一律 no-store, 刷新即最新。
+    """
+
+    async def get_response(self, path: str, scope):
+        resp = await super().get_response(path, scope)
+        resp.headers["Cache-Control"] = "no-store, must-revalidate"
+        return resp
+
+
 if WEB_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(WEB_DIR), html=True), name="web")
+    app.mount("/", _NoCacheStatic(directory=str(WEB_DIR), html=True), name="web")
 
 
 def main() -> None:

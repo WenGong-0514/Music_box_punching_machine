@@ -27,7 +27,7 @@
         ┌─────────────┬───────┴────────┬──────────────┬─────────────┐
         ▼             ▼                ▼              ▼             ▼
    GUI 画布编辑   导出 JSON/CSV    导出 SVG/PNG   导出 MIDI    导出 G-code(GRBL)
-     (④)                       (⑤, /api/export/*)            (server/gcode.py)
+     (④)                       (⑥, /api/export/*)            (server/gcode.py)
 ```
 
 关键设计取舍:
@@ -59,7 +59,7 @@ server/                  FastAPI 后端(全部业务逻辑)
     remote_omnizart.py   Omnizart HTTP 引擎服务的客户端 + 健康探测(带 TTL 缓存)
 
 web/                     前端(零构建依赖, 原生 ES Module)
-  index.html             五步界面 + Omnizart 服务地址栏 + MIDI 乐谱导入面板
+  index.html             六步界面 + Omnizart 服务地址栏 + MIDI 乐谱导入面板 + 打孔 Z 高度
   js/app.js              主控: 导入/识别/量化/编辑/试听/导出、引擎与 MIDI 交互
   js/tapeview.js         纸带画布: 缩放、点击加删孔、拖拽擦除、播放头、音名列标签
   js/audiofx.js          波形绘制 + WebAudio 拨弦合成试听
@@ -158,7 +158,9 @@ duplicates, too_close, warnings, final_holes`
 | GET | `/api/export/{fmt}` | `fmt ∈ json\|csv\|svg\|midi\|gcode`(下载) |
 | POST | `/api/table` | `{columns[30], base_octave, name}` 替换音表 |
 | GET | `/api/project` | 工程快照(会话/音符预览/纸带/统计/音表) |
-| POST | `/api/gcode` | 生成打孔 G-code,返回 `{stats, lines, bytes, preview, gcode}` |
+| GET | `/api/gcode/params` | 打孔 Z 三层当前值 + 默认值 + 顺序规则(`移动 ≤ 安全 ≤ 工作`) |
+| POST | `/api/gcode/params` | `{z_work, z_safe, z_travel}` 选定三个 Z 高度,记入工程(重启保留);反向值 422 |
+| POST | `/api/gcode` | 生成打孔 G-code,返回 `{stats, z, lines, bytes, preview, gcode}`;body 里带 Z 高度会先应用 |
 
 ---
 

@@ -100,6 +100,7 @@ class AppState:
         self.session: Session | None = None
         self.tape = None           # Tape (或 None)
         self.quantize_stats: dict = {}
+        self.z_params: dict = {}   # 打孔 Z 三层高度(生成 G-code 前在 GUI 里选)
         self.jobs = JobManager()
 
     # ---- 持久化 ----
@@ -111,6 +112,7 @@ class AppState:
             "notes": self.session.notes if self.session else [],
             "tape": self.tape.to_dict() if self.tape else None,
             "quantize_stats": self.quantize_stats,
+            "z_params": self.z_params,
         }
         PROJECT_FILE.write_text(json.dumps(doc, ensure_ascii=False, indent=1),
                                 encoding="utf-8")

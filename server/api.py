@@ -10,6 +10,8 @@ from fastapi.responses import JSONResponse, Response
 
 from . import engines
 from .audio_io import decode_audio_file, make_waveform_peaks
+from .gcode import (MachineParams, Z_KEYS, Z_LABELS, estimate, params_from, plan,
+                    tape_to_gcode, validate_z, z_dict)
 from .notetable import NoteTable
 from .quantize import quantize_to_tape
 from .state import SESSIONS_DIR, AppState, Session
@@ -46,7 +48,9 @@ def make_router(state: AppState) -> APIRouter:
             "table": state.table.to_dict() if state.table else None,
             "defaults": {"quantize": DEFAULT_QUANTIZE,
                          "engine_params": DEFAULT_ENGINE_PARAMS},
-            "gcode_supported": False,
+            # 打孔 Z 三层(生成 G-code 前可选; 说明见 /api/gcode/params)
+            "gcode_z": z_dict(params_from(state.z_params)),
+            "gcode_supported": True,
         }
 
     # ---------------- 引擎动态配置(如 Omnizart HTTP 服务) ----------------
@@ -331,8 +335,7 @@ def make_router(state: AppState) -> APIRouter:
             media = "audio/midi"
             ext = "mid"
         elif fmt == "gcode":
-            from .gcode import tape_to_gcode
-            content = tape_to_gcode(state.tape, state.table)
+            content = tape_to_gcode(state.tape, state.table, params_from(state.z_params))
             media = "text/plain; charset=utf-8"
             ext = "gcode"
         else:
@@ -367,19 +370,53 @@ def make_router(state: AppState) -> APIRouter:
             "table": state.table.to_dict() if state.table else None,
         }
 
+    # ---------------- 打孔 Z 三层(生成 G-code 前由用户选定) ----------------
+    def _apply_z(body: dict) -> None:
+        """合并并校验三个 Z 高度; 不合法抛 422, 合法则写入 state 并存盘。"""
+        cur = z_dict(params_from(state.z_params))
+        for k in Z_KEYS:
+            if body.get(k) is not None:
+                cur[k] = body[k]
+        err = validate_z(cur["z_work"], cur["z_safe"], cur["z_travel"])
+        if err:
+            raise HTTPException(422, err)
+        state.z_params = {k: float(cur[k]) for k in Z_KEYS}
+        state.save_project()
+
+    @router.get("/gcode/params")
+    def get_gcode_params():
+        """GUI ⑤: 当前生效的三个 Z 高度 + 默认值 + 顺序规则(值越大越往下)。"""
+        p = params_from(state.z_params)
+        return {"current": z_dict(p), "defaults": z_dict(MachineParams()),
+                "labels": Z_LABELS, "min": 0.0, "max": 200.0,
+                "stroke_mm": p.z_stroke_mm,
+                "rule": "Z 值越大越往下, 必须 移动高度 ≤ 安全高度 ≤ 工作高度"}
+
+    @router.post("/gcode/params")
+    def set_gcode_params(body: dict):
+        """body: {z_work, z_safe, z_travel} —— 记入工程(重启后保留)。"""
+        _apply_z(body)
+        p = params_from(state.z_params)
+        return {"current": z_dict(p), "stroke_mm": p.z_stroke_mm,
+                "note": "已应用: 之后生成/下载的 G-code 都用这三个高度"}
+
     # ---------------- G-code(打孔) ----------------
     @router.post("/gcode")
-    def gcode():
-        """生成打孔 G-code 并返回统计 + 预览(完整文本也在此返回)。"""
+    def gcode(body: dict | None = None):
+        """生成打孔 G-code 并返回统计 + 预览(完整文本也在此返回)。
+
+        body 里若带 z_work/z_safe/z_travel 会先应用(并记入工程), 便于"所见即所得"。
+        """
         if state.tape is None or state.tape.hole_count() == 0:
             raise HTTPException(400, "还没有纸带数据")
-        from .gcode import MachineParams, estimate, plan, tape_to_gcode
-        p = MachineParams()
+        if body:
+            _apply_z(body)
+        p = params_from(state.z_params)
         planned = plan(state.tape, p)
         est = estimate(planned)
         text = tape_to_gcode(state.tape, state.table, p)
         lines = text.splitlines()
-        return {"stats": est, "lines": len(lines), "bytes": len(text),
+        return {"stats": est, "z": z_dict(p), "lines": len(lines), "bytes": len(text),
                 "preview": "\n".join(lines[:40]), "gcode": text}
 
     return router
