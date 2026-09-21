@@ -54,10 +54,11 @@ tools/score_ref/xiaye_score.json
 ncm_tools/
 
 # ---- 3D 打印盘(.3mf)----
-#   打印盘里可能包含第三方生成件(如 MakerWorld「压缩弹簧生成器」产出的弹簧), 其许可
-#   (Standard Digital File License)禁止再分发数字/3D 版本及其衍生作品 => 默认不入库。
-#   若你确认某个 .3mf 只含自绘零件, 可单独取消该文件的忽略。
+#   默认不入库: 打印盘里可能混入第三方生成件(如 MakerWorld「压缩弹簧生成器」产出的弹簧),
+#   其许可(Standard Digital File License)禁止再分发数字/3D 版本及其衍生作品。
+#   例外: 已确认只含自绘零件的排版可以入库(见下面那行), 入库前务必核对盘上没有第三方件。
 HardWare_Model/*.3mf
+!HardWare_Model/打印.3mf
 
 # ---- 系统 / 编辑器 ----
 Thumbs.db

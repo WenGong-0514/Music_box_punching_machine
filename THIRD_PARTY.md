@@ -81,7 +81,7 @@ onnxruntime(MIT)、setuptools(<81, MIT)。完整与最新版本见 [`requirement
 
 | 来源 | 用途 | 说明 / 许可提示 |
 |---|---|---|
-| **[MakerWorld「压缩弹簧生成器(参数化)」](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547)** | 生成"冲头压纸弹簧"3D 模型(仅个人打印自用) | **Standard Digital File License**:禁止以任何方式分享/分许可/出售/出租/托管/转让/分发其数字或 3D 打印版本**及其衍生作品**(含二次创作与在其他数字平台托管);**不收费亦不豁免**。→ 本仓库**不收录**该弹簧的任何数字文件(含其排版的 `.3mf`),仅作署名与来源说明。详见 [docs/HARDWARE.md §3](docs/HARDWARE.md) |
+| **[MakerWorld「压缩弹簧生成器(参数化)」](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547)** | 生成"冲头压纸弹簧"3D 模型(仅个人打印自用) | **Standard Digital File License**:禁止以任何方式分享/分许可/出售/出租/托管/转让/分发其数字或 3D 打印版本**及其衍生作品**(含二次创作与在其他数字平台托管);**不收费亦不豁免**。→ 本仓库**不收录**该弹簧的任何数字文件(含并入弹簧排版的 `.3mf`),只提供**署名、来源链接与"自己生成+合装"教程**(参数怎么选、怎么与自绘零件合装见 [docs/HARDWARE.md §7](docs/HARDWARE.md);README 有同名小节)。使用者自行在本机生成、本机打印即不构成分发 |
 | **嘉立创 jlcfa.com 标准件库** | 轴承/步进电机/同步带轮/紧固件等标准件 3D 模型(`HardWare_Model/标准模型/`) | 厂商选型参考资料,版权归原厂商;仅用于装配设计参考 |
 | **"小政哥的店铺" CMS3 控制系统** | 运动控制板(商业成品) | **商业产品**:仓库只声明型号与来源,**不分发**其固件/说明书/安装包 |
 | **GRBL-Plotter**(作者 svenhb) | 把本机生成的 G-code 发送给控制板(第三方开源软件) | 独立分发,**本项目不收录其代码**;许可与用法以其官方仓库/发布页为准 |

@@ -164,11 +164,33 @@ run.bat
 > 注意 `xy_feed` 的代码默认值(3000 mm/min)高于本机 `$110`/`$111` 上限(2500)——
 > 详见 [docs/MACHINE.md §7](docs/MACHINE.md)。
 
+### 冲头压纸弹簧:自己生成并合装
+
+冲孔机构里有一根 **3D 打印压缩弹簧**(压住纸带、防止跳动),它**不随本仓库分发**:
+该弹簧由 MakerWorld 的「压缩弹簧生成器(参数化)」产出,该作品以 **Standard Digital File License** 授权,
+**明确禁止再分发其数字版本及衍生作品**(并入排版的 `.3mf` 也算衍生作品)。
+所以仓库只给**教程与参数**,弹簧请各自在本机生成、本机打印:
+
+1. **生成弹簧** — 打开 [MakerWorld「压缩弹簧生成器(参数化)」](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547),
+   点 **Customize / 参数化自定义**,设定线径、外径、自由长度、有效圈数,导出 STL/3MF。
+   参数怎么选、弹力影响见 [docs/HARDWARE.md §7](docs/HARDWARE.md)。
+
+   ![参数化弹簧生成器的参数界面](docs/images/spring-generator-params.png)
+
+2. **与自绘零件合装** — 在 BambuStudio 里把弹簧**导入到同一盘**,摆到冲头滑块下方
+   (与 `HardWare_Model/打印.3mf` 里的零件同一坐标系),即成为完整的压纸机构:
+
+   ![弹簧与自绘零件组合效果 1](docs/images/spring-assembly-1.png)
+
+   ![弹簧与自绘零件组合效果 2](docs/images/spring-assembly-2.png)
+
+> ⚠️ **合装后的盘不要再对外分发** —— 并入弹簧后它就成了该作品的衍生作品,受同一许可约束。
+> 仓库里的 `打印.3mf` 因此**只含自绘零件**(已逐件核对,不含任何第三方模型)。
+> 完整说明与合规要点见 [THIRD_PARTY.md](THIRD_PARTY.md) 与 [docs/HARDWARE.md §3/§7](docs/HARDWARE.md)。
+
 👉 **完整规格、参数表、上机前校验流程与 GRBL 设置建议见 [docs/MACHINE.md](docs/MACHINE.md)**。
 硬件构成、CAD 模型与**来源/许可/元数据提示**见 [docs/HARDWARE.md](docs/HARDWARE.md)。
-（控制系统为商业成品 **CMS3**;发送 G-code 使用第三方软件 **GRBL-Plotter**;冲头压纸弹簧由
-[MakerWorld 参数化弹簧生成器](https://makerworld.com.cn/zh/models/1513277-ya-suo-dan-huang-sheng-cheng-qi-can-shu-hua?from=search#profileId-1652547)生成并**仅个人打印自用** ——
-该模型受其 Standard Digital File License 限制,**其数字文件不随本仓库分发**。）
+（控制系统为商业成品 **CMS3**;发送 G-code 使用第三方软件 **GRBL-Plotter**。）
 
 ---
 
@@ -207,7 +229,7 @@ tools/           命令行工具: 合成测试音频、e2e 冒烟、评测、预
 deploy_server/   把 Omnizart 部署成 HTTP 引擎服务(容器 / 安装文档 / GPU 复现)
 data/            音表配置(note_table_30note.json)与自动存档(project.json, 已忽略)
 docs/            开发者文档与参考(MACHINE / DEVELOPMENT / ENGINES / HISTORY)
-docs/images/     文档插图(界面运行效果图、GRBL 实机设置截图)
+docs/images/     文档插图(界面效果图、GRBL 实机设置、弹簧生成/合装步骤)
 ```
 
 ---
