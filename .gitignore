@@ -29,6 +29,11 @@ data/project.json
 # ---- 输出目录(生成的 G-code/MIDI/图纸与源音频)----
 out/
 
+# ---- 导出的 G-code 成品(GRBL-Plotter 另存为 .nc/.gcode 等; 属生成物, 且可能含曲名)----
+*.nc
+*.gcode
+*.gc
+
 # ---- 大体积分发产物(1GB 级镜像 tar 等; 用 deploy_server/Dockerfile.portable 自行构建)----
 *.tar
 *.tar.gz
