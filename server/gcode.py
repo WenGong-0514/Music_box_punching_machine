@@ -16,7 +16,7 @@
      (八音盒上的实际节奏 = 孔距 ÷ 八音盒走带速度, 与 y_feed_mm_min 无关)
   纸带 70mm 宽, 有效音频区 57.5mm, 左右空白各 6.25mm
   列分布(edge): X(col) = 6.25 + col*(57.5/29) -> col0=6.25, col29=63.75
-  结束时: 不回 Y0, 而是继续向前 y_tail_mm(默认 50mm)便于剪下纸带
+  结束时: 不回 Y0, 而是继续向前 y_tail_mm(默认 100mm)便于剪下纸带
 
 路线规划:
   - 同一 row 的多孔 = 同一横线, 纸带停住, 按 X 依次冲完该行
@@ -48,7 +48,7 @@ class MachineParams:
     xy_feed: float = 3000.0           # mm/min, X 空移
     y_feed_mm_min: float = 1000.0     # mm/min, 打孔机送带 F(用户 Y 轴实测值)
                                       #   只影响打孔耗时; 若 $111 允许也可提到 2000
-    y_tail_mm: float = 50.0           # 结束后继续前进(便于剪带)
+    y_tail_mm: float = 100.0           # 结束后继续前进(便于剪带)
     include_header: bool = True
 
     @property

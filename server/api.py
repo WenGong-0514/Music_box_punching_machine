@@ -4,6 +4,7 @@ from __future__ import annotations
 import threading
 import uuid
 from pathlib import Path
+from urllib.parse import quote, unquote
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
@@ -81,8 +82,9 @@ def make_router(state: AppState) -> APIRouter:
         raw = await request.body()
         if not raw:
             raise HTTPException(400, "空文件")
-        fname = request.headers.get("x-file-name", "audio")
-        fname = Path(fname).name
+        # 前端用 encodeURIComponent 传文件名(HTTP 头不能直接放非 ASCII), 这里解回来
+        fname = Path(unquote(request.headers.get("x-file-name", "audio"),
+                             errors="replace")).name
         ext = Path(fname).suffix.lower() or ".wav"
         sid = uuid.uuid4().hex[:12]
         sess_dir = SESSIONS_DIR / sid
@@ -188,8 +190,8 @@ def make_router(state: AppState) -> APIRouter:
         raw = await request.body()
         if not raw:
             raise HTTPException(400, "空文件")
-        fname = request.headers.get("x-file-name", "song.mid")
-        fname = Path(fname).name
+        fname = Path(unquote(request.headers.get("x-file-name", "song.mid"),
+                             errors="replace")).name
         if not fname.lower().endswith((".mid", ".midi", ".kar")):
             raise HTTPException(422, "仅支持 .mid/.midi")
         from . import midi_import
@@ -316,7 +318,9 @@ def make_router(state: AppState) -> APIRouter:
         if state.tape is None:
             raise HTTPException(400, "还没有纸带数据")
         sess = state.session
-        base = Path(sess.file_name).stem if sess and sess.file_name else "tape"
+        # 老工程里可能还存着 encodeURIComponent 过的文件名, 下载时一并解回来
+        base = (Path(unquote(sess.file_name, errors="replace")).stem
+                if sess and sess.file_name else "tape")
         if fmt == "json":
             content = state.tape.to_json()
             media = "application/json"
@@ -341,8 +345,13 @@ def make_router(state: AppState) -> APIRouter:
         else:
             raise HTTPException(404, f"未知格式 {fmt}")
         fn = f"{base}_tape.{ext}"
+        # HTTP 头只能是 latin-1: 中文名必须走 RFC 6266 的 filename*(UTF-8 百分号编码),
+        # 同时给不支持 filename* 的老客户端一个纯 ASCII 回退名。
+        ascii_fn = fn.encode("ascii", "replace").decode("ascii").replace("?", "_")
+        disp = (f'attachment; filename="{ascii_fn}"; '
+                f"filename*=UTF-8''{quote(fn, safe='')}")
         return Response(content=content, media_type=media,
-                        headers={"Content-Disposition": f'attachment; filename="{fn}"'})
+                        headers={"Content-Disposition": disp})
 
     # ---------------- 音表(自定义) ----------------
     @router.post("/table")

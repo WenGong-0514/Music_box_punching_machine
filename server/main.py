@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import re as _re
 from dataclasses import fields as _dc_fields
 from pathlib import Path
 
@@ -54,6 +55,10 @@ def _restore() -> None:
             sess = Session(**{k: v for k, v in doc["session"].items()
                               if k in _SESSION_FIELDS})
             sess.notes = list(doc.get("notes") or [])
+            # 老工程的文件名可能是 encodeURIComponent 过的(前端编码、旧后端没解码), 这里补一次
+            if "%" in sess.file_name and _re.search(r"%[0-9A-Fa-f]{2}", sess.file_name):
+                from urllib.parse import unquote
+                sess.file_name = unquote(sess.file_name, errors="replace")
             # 解码缓存的 wav 若还在, 一并接回(重启后仍可直接重新识别)
             wav = SESSIONS_DIR / sess.id / "mono.wav"
             if wav.exists():
